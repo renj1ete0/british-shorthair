@@ -1,0 +1,5 @@
+*.env*
+*.bat*
+/scripts/export/*
+*.pyc*
+*_pycache_*
