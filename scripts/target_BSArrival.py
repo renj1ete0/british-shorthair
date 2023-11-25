@@ -17,9 +17,7 @@ def getBusStopTiming(bus_stop, api_key = API_KEYS, LTA_API = API_LTA_BUS()):
     temp_res = {}
     res = LTA_API.getBusStopTiming(bus_stop, api_key = api_key[random.randint(0, len(api_key) - 1)])
     if len(res["Services"]) > 0:
-        temp_res["BusArrival"] = {
-            res["BusStopCode"]: res["Services"]
-        }
+        temp_res[res["BusStopCode"]] = res["Services"]
     return temp_res
 
 def getBusStop():
@@ -48,13 +46,14 @@ def main():
             if len(BUS_STOPS) == 0 or dt.datetime.now().strftime("%Y-%m-%d") != BUS_STOPS_DATE:
                 BUS_STOPS, BUS_STOPS_DATE = getBusStop()
             time.sleep(0.01)
-
+        proc_res = {}
         start_time = dt.datetime.now()
-        temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)[0]
-        temp_res["Bus_Arrival_DateTime"] = str(start_time)
+        temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
+        proc_res["BusArrival"] = temp_res
+        proc_res["BusArrival_DateTime"] = str(dt.datetime.now())
         end_time = dt.datetime.now()
         print(f"async started: {start_time} ended: {end_time}")
-        json_object = json.dumps(temp_res, indent = 4) 
+        json_object = json.dumps(proc_res, indent = 4) 
             
         filename = f'export/busarrival_{dt.datetime.now().strftime("%Y-%m-%d-%H-%M")}.json'
         with open(filename, "w") as outfile:
