@@ -10,8 +10,10 @@ class API_LTA_BUS:
 
         self.URLBUSARRIVAL = "http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2"
         self.URLBUSSTOP = "http://datamall2.mytransport.sg/ltaodataservice/BusStops?$skip="
+        self.URLBUSROUTES = "http://datamall2.mytransport.sg/ltaodataservice/BusRoutes?$skip="
+        self.URLBUSSERVICES = "http://datamall2.mytransport.sg/ltaodataservice/BusServices?$skip="
 
-    def APICALL(self, url, header, parameters):
+    def APICALL(self, url, header, parameters = {}):
         response = None
         try:
             response = requests.get(url, headers = header, params = parameters)
@@ -24,6 +26,7 @@ class API_LTA_BUS:
 
     def getBusStopTiming(self, bs_code, api_key, svc_no = ""):
         
+        tries = 0
         header = {
         'AccountKey' : api_key,  
         'accept' : 'application/json',
@@ -36,8 +39,17 @@ class API_LTA_BUS:
         
         response = self.APICALL(self.URLBUSARRIVAL, header, parameters)
 
-        if response.status_code == 200:
-            return response.json()
+        if "status_code" in response or response.status_code == 200:
+            while tries < 3 and response.status_code != 200:
+                if response.status_code != 200:
+                    tries += 1
+                    response = self.APICALL(self.URLBUSARRIVAL, header, parameters)
+            
+            if response.status_code == 200:
+                return response.json()
+
+            else:
+                return response
         
         return {"error": f"An error occured for {bs_code}", "status_code": response.status_code}
     
@@ -51,7 +63,7 @@ class API_LTA_BUS:
         'accept' : 'application/json'
         }
         
-        response = requests.get(link, headers = header)
+        response = self.APICALL(link, header)
     
         return response
 
@@ -80,6 +92,85 @@ class API_LTA_BUS:
             record += 500
 
         return all_busstop
+    
+    def getBusRoutes(self, records):
+        
+        link = self.URLBUSROUTES + str(records)
+        
+        header = {
+        'AccountKey' : self.apikey,  
+        'accept' : 'application/json'
+        }
+
+        response = self.APICALL(link, header)
+
+        return response
+
+    
+    def getAllBusRoute(self):
+            
+        all_busstop = []
+        not_complete = True
+        record = 0
+
+        while(not_complete):
+            
+            ret_busstop = self.getBusRoutes(record)
+
+            try:
+                json_response = ret_busstop.json()
+                json_dict = json_response['value']
+
+                if len(json_dict) > 0:
+                    all_busstop += json_dict
+                else:
+                    not_complete = False
+            except:
+                not_complete = False
+            
+            record += 500
+
+        return all_busstop
+
+    def getBusService(self, records):
+        
+        link = self.URLBUSSERVICES + str(records)
+        
+        header = {
+        'AccountKey' : self.apikey,  
+        'accept' : 'application/json'
+        }
+        
+        response = self.APICALL(link, header)
+
+        return response
+
+    
+    def getAllBusService(self):
+            
+        all_busstop = []
+        not_complete = True
+        record = 0
+
+        while(not_complete):
+            
+            ret_busstop = self.getBusService(record)
+
+            try:
+                json_response = ret_busstop.json()
+                json_dict = json_response['value']
+
+                if len(json_dict) > 0:
+                    all_busstop += json_dict
+                else:
+                    not_complete = False
+            except:
+                not_complete = False
+            
+            record += 500
+
+        return all_busstop
+
         
 if __name__ == '__main__':
     print(__package__)

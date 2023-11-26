@@ -3,3 +3,4 @@
 /scripts/export/*
 *.pyc*
 *_pycache_*
+*.json*
