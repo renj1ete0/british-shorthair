@@ -28,8 +28,12 @@ def getBusStopTiming(bus_stop, api_key = API_KEYS, LTA_API = API_LTA_BUS()):
         temp_res[res["BusStopCode"]] = res["Services"]
     else:
         try:
-            logging(f"Error obtaining API data: {bus_stop}, response: {res}")
-            temp_res[bus_stop] = [{"Error": res}]
+            if hasattr("status_code", res):
+                logging(f"Error obtaining API data: {bus_stop}, response: {res.text}")
+                temp_res[bus_stop] = [{"Error": res.text}]
+            else:
+                logging(f"Error obtaining API data: {bus_stop}, response: {res}")
+                temp_res[bus_stop] = [{"Error": res}]
         except:
             logging(f"Error with: {bus_stop}, response: unknown")        
     return temp_res
@@ -103,7 +107,7 @@ def main():
             if cur_date != BUS_SERVICES_DATE:
                 BUS_SERVICES_DATE = getBusService()
             time.sleep(0.01)
-
+        cur_date = dt.datetime.now().strftime("%Y-%m-%d") # refresh current date for new day 0000hrs case
         proc_res = {}
         start_time = dt.datetime.now()
         temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
