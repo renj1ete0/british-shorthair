@@ -97,6 +97,7 @@ def main():
     BUS_STOPS_DATE = ""
     BUS_ROUTES_DATE = ""
     BUS_SERVICES_DATE = ""
+    cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
     while True:
         while BUS_STOPS_DATE_TIME == cur_datetime:
@@ -109,7 +110,7 @@ def main():
             if cur_date != BUS_SERVICES_DATE:
                 BUS_SERVICES_DATE = getBusService()
             time.sleep(0.01)
-            
+
         cur_date = dt.datetime.now().strftime("%Y-%m-%d") # refresh current date for new day 0000hrs case
         proc_res = {}
         start_time = dt.datetime.now()
