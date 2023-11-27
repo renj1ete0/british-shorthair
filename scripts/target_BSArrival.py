@@ -110,7 +110,7 @@ def main():
             if cur_date != BUS_SERVICES_DATE:
                 BUS_SERVICES_DATE = getBusService()
             time.sleep(0.01)
-            
+
         cur_date = dt.datetime.now().strftime("%Y-%m-%d") # refresh current date for new day 0000hrs case
         proc_res = {}
         start_time = dt.datetime.now()
@@ -128,7 +128,7 @@ def main():
         with open(filename, "w") as outfile:
             outfile.write(json_object)
 
-        cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
+        BUS_STOPS_DATE_TIME = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
 if __name__ == "__main__":
     main()
