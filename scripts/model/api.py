@@ -25,7 +25,7 @@ class API_LTA_BUS:
         return response
 
     def getBusStopTiming(self, bs_code, api_key, svc_no = ""):
-        
+        rejected = True
         tries = 0
         header = {
         'AccountKey' : api_key,  
@@ -39,19 +39,24 @@ class API_LTA_BUS:
         
         response = self.APICALL(self.URLBUSARRIVAL, header, parameters)
 
-        if "status_code" in response or response.status_code == 200:
-            while tries < 3 and response.status_code != 200:
-                if response.status_code != 200:
-                    tries += 1
-                    response = self.APICALL(self.URLBUSARRIVAL, header, parameters)
-            
+        if hasattr(response, "status_code"):
             if response.status_code == 200:
+                rejected = False
                 return response.json()
 
-            else:
-                return response
+        while tries < 3 and rejected:
+            if hasattr(response.status_code, "status_code"):
+                if response.status_code == 200:
+                    rejected = False
+                    return response.json()
+
+            tries += 1
+            response = self.APICALL(self.URLBUSARRIVAL, header, parameters)
         
-        return {"error": f"An error occured for {bs_code}", "status_code": response.status_code}
+        if response is None:
+            return {"error": f"An error occured for {bs_code}", "status_code": response.status_code}
+        else:
+            return response
     
 
     def getBusStops(self, records):
