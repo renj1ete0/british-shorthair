@@ -93,13 +93,15 @@ def getBusService():
 def main():
     pool = Pool(processes=10)  # Create a pool of 10 processes
     BUS_STOPS = []
+    BUS_STOPS_DATE_TIME = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
     BUS_STOPS_DATE = ""
     BUS_ROUTES_DATE = ""
     BUS_SERVICES_DATE = ""
 
     while True:
-        while dt.datetime.now().second:
+        while BUS_STOPS_DATE_TIME == cur_datetime:
             cur_date = dt.datetime.now().strftime("%Y-%m-%d")
+            cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
             if len(BUS_STOPS) == 0 or cur_date != BUS_STOPS_DATE:
                 BUS_STOPS, BUS_STOPS_DATE = getBusStop()
             if cur_date != BUS_ROUTES_DATE:
@@ -107,6 +109,7 @@ def main():
             if cur_date != BUS_SERVICES_DATE:
                 BUS_SERVICES_DATE = getBusService()
             time.sleep(0.01)
+            
         cur_date = dt.datetime.now().strftime("%Y-%m-%d") # refresh current date for new day 0000hrs case
         proc_res = {}
         start_time = dt.datetime.now()
@@ -123,6 +126,8 @@ def main():
         filename = f'export/{cur_date}/busarrival_{dt.datetime.now().strftime("%Y-%m-%d-%H-%M")}.json'
         with open(filename, "w") as outfile:
             outfile.write(json_object)
+
+        cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
 if __name__ == "__main__":
     main()
