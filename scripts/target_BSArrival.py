@@ -29,7 +29,7 @@ def getBusStopTiming(bus_stop, api_key = API_KEYS, LTA_API = API_LTA_BUS()):
     else:
         try:
             if hasattr("status_code", res):
-                logging(f"Error obtaining API data: {bus_stop}, response: {res.text}")
+                logging(f"Error obtaining API data: {bus_stop}, status_code: {res.status_code} response: {res.text}")
                 temp_res[bus_stop] = [{"Error": res.text}]
             else:
                 logging(f"Error obtaining API data: {bus_stop}, response: {res}")
