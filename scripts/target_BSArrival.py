@@ -97,9 +97,9 @@ def main():
     BUS_STOPS_DATE = ""
     BUS_ROUTES_DATE = ""
     BUS_SERVICES_DATE = ""
-    cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
     while True:
+        cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
         while BUS_STOPS_DATE_TIME == cur_datetime:
             cur_date = dt.datetime.now().strftime("%Y-%m-%d")
             cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
@@ -111,13 +111,14 @@ def main():
                 BUS_SERVICES_DATE = getBusService()
             time.sleep(0.01)
 
-        cur_date = dt.datetime.now().strftime("%Y-%m-%d") # refresh current date for new day 0000hrs case
         proc_res = {}
         start_time = dt.datetime.now()
+        cur_date = start_time.strftime("%Y-%m-%d") # refresh current date for new day 0000hrs case
         temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
         proc_res["BusArrival"] = temp_res
         proc_res["BusArrival_DateTime"] = str(dt.datetime.now())
         end_time = dt.datetime.now()
+        BUS_STOPS_DATE_TIME = end_time.strftime("%Y-%m-%d-%H-%M")
         logging(f"async started: {start_time} ended: {end_time}")
         json_object = json.dumps(proc_res, indent = 4) 
 
@@ -127,8 +128,6 @@ def main():
         filename = f'export/{cur_date}/busarrival_{dt.datetime.now().strftime("%Y-%m-%d-%H-%M")}.json'
         with open(filename, "w") as outfile:
             outfile.write(json_object)
-
-        BUS_STOPS_DATE_TIME = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
-
+    
 if __name__ == "__main__":
     main()
