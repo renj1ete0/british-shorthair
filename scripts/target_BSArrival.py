@@ -118,7 +118,7 @@ def main():
         proc_res["BusArrival"] = temp_res
         proc_res["BusArrival_DateTime"] = str(dt.datetime.now())
         end_time = dt.datetime.now()
-        BUS_STOPS_DATE_TIME = end_time.strftime("%Y-%m-%d-%H-%M")
+        BUS_STOPS_DATE_TIME = start_time.strftime("%Y-%m-%d-%H-%M")
         logging(f"async started: {start_time} ended: {end_time}")
         json_object = json.dumps(proc_res, indent = 4) 
 
