@@ -80,11 +80,11 @@ def getBusService():
 def checkNetworkConnectivity():
     LTA_API = API_LTA_BUS()
     BUS_ROUTES = LTA_API.getBusRoutes(0)
-    return BUS_ROUTES
+    return BUS_ROUTES.status_code != 200
 
 
 def main():
-    while len(checkNetworkConnectivity()) == 0:
+    while checkNetworkConnectivity():
         logging(f"=======================================")
         logging(f"Internet Connectivity is down!")
         logging(f"=======================================")

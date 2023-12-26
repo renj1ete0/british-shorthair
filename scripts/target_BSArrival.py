@@ -48,7 +48,7 @@ def getBusStop():
 def checkNetworkConnectivity():
     LTA_API = API_LTA_BUS()
     BUS_ROUTES = LTA_API.getBusRoutes(0)
-    return BUS_ROUTES
+    return BUS_ROUTES.status_code != 200
 
 def main():
     pool = Pool(processes=10)  # Create a pool of 10 processes
@@ -56,12 +56,13 @@ def main():
     proc_res = {}
     start_time = dt.datetime.now()
     if start_time.second > 5:
+        logging(f"Exceed 5s mark, waiting for next min...")
         return
     cur_date = start_time.strftime("%Y-%m-%d")
     logging(f"async started: {start_time} in progress...")
 
     # Insert check for internet connectivity
-    if len(checkNetworkConnectivity()) == 0:
+    if checkNetworkConnectivity():
         logging(f"=======================================")
         logging(f"Internet Connectivity is down!")
         logging(f"async ended with errors...")
