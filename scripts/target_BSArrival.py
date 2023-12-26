@@ -53,6 +53,9 @@ def checkNetworkConnectivity():
 def main():
     pool = Pool(processes=10)  # Create a pool of 10 processes
     BUS_STOPS = getBusStop()
+    proc_res = {}
+    start_time = dt.datetime.now()
+    cur_date = start_time.strftime("%Y-%m-%d")
     logging(f"async started: {start_time} in progress...")
 
     # Insert check for internet connectivity
@@ -63,9 +66,6 @@ def main():
         logging(f"=======================================")
         return
 
-    proc_res = {}
-    start_time = dt.datetime.now()
-    cur_date = start_time.strftime("%Y-%m-%d")
     logging(f"async started: {start_time} in progress...")
     temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
     proc_res["BusArrival"] = temp_res
