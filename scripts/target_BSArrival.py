@@ -2,7 +2,6 @@ from dotenv import dotenv_values
 from multiprocessing import Pool
 from model.api import API_LTA_BUS
 import datetime as dt
-import time
 import json
 import random
 import os 
@@ -39,95 +38,36 @@ def getBusStopTiming(bus_stop, api_key = API_KEYS, LTA_API = API_LTA_BUS()):
     return temp_res
 
 def getBusStop():
-    LTA_API = API_LTA_BUS()
-    BUS_STOP_JSON = LTA_API.getAllBusStops()
-
+    BUS_STOP_JSON = json.load(open("export/busstop_current.json"))
     BUS_STOPS = []
     for bs in BUS_STOP_JSON:
         BUS_STOPS.append(bs["BusStopCode"])
 
-    cur_date = dt.datetime.now().strftime("%Y-%m-%d")
-    if not os.path.exists(f'export/{cur_date}'): 
-        os.makedirs(f'export/{cur_date}') 
-
-    filename = f'export/{cur_date}/busstop_{dt.datetime.now().strftime("%Y-%m-%d")}.json'
-    with open(filename, "w") as outfile:
-        json.dump(BUS_STOP_JSON, outfile)
-
-    logging(f"Bus Stop Dataset Exported! {filename}")
-
-    return BUS_STOPS, dt.datetime.now().strftime("%Y-%m-%d")
-
-def getBusRoute():
-    LTA_API = API_LTA_BUS()
-    BUS_ROUTES = LTA_API.getAllBusRoute()
-
-    cur_date = dt.datetime.now().strftime("%Y-%m-%d")
-    if not os.path.exists(f'export/{cur_date}'): 
-        os.makedirs(f'export/{cur_date}') 
-
-    filename = f'export/{cur_date}/busroute_{dt.datetime.now().strftime("%Y-%m-%d")}.json'
-    with open(filename, "w") as outfile:
-        json.dump(BUS_ROUTES, outfile)
-
-    logging(f"Bus Routes Dataset Exported! {filename}")
-
-    return dt.datetime.now().strftime("%Y-%m-%d")
-
-def getBusService():
-    LTA_API = API_LTA_BUS()
-    BUS_SERVICE = LTA_API.getAllBusService()
-
-    cur_date = dt.datetime.now().strftime("%Y-%m-%d")
-    if not os.path.exists(f'export/{cur_date}'): 
-        os.makedirs(f'export/{cur_date}') 
-
-    filename = f'export/{cur_date}/busservice_{dt.datetime.now().strftime("%Y-%m-%d")}.json'
-    with open(filename, "w") as outfile:
-        json.dump(BUS_SERVICE, outfile)
-
-    logging(f"Bus Service Dataset Exported! {filename}")
-
-    return dt.datetime.now().strftime("%Y-%m-%d")
+    return BUS_STOPS
 
 def main():
     pool = Pool(processes=10)  # Create a pool of 10 processes
-    BUS_STOPS = []
-    BUS_STOPS_DATE_TIME = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
-    BUS_STOPS_DATE = ""
-    BUS_ROUTES_DATE = ""
-    BUS_SERVICES_DATE = ""
+    BUS_STOPS = getBusStop()
 
-    while True:
-        cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
-        while BUS_STOPS_DATE_TIME == cur_datetime:
-            cur_date = dt.datetime.now().strftime("%Y-%m-%d")
-            cur_datetime = dt.datetime.now().strftime("%Y-%m-%d-%H-%M")
-            if len(BUS_STOPS) == 0 or cur_date != BUS_STOPS_DATE:
-                BUS_STOPS, BUS_STOPS_DATE = getBusStop()
-            if cur_date != BUS_ROUTES_DATE:
-                BUS_ROUTES_DATE = getBusRoute()
-            if cur_date != BUS_SERVICES_DATE:
-                BUS_SERVICES_DATE = getBusService()
-            time.sleep(0.01)
+    proc_res = {}
+    start_time = dt.datetime.now()
+    cur_date = start_time.strftime("%Y-%m-%d")
+    temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
+    proc_res["BusArrival"] = temp_res
+    proc_res["BusArrival_DateTime"] = str(dt.datetime.now())
+    end_time = dt.datetime.now()
+    logging(f"async started: {start_time} in progress...")
+    json_object = json.dumps(proc_res, indent = 4) 
 
-        proc_res = {}
-        start_time = dt.datetime.now()
-        cur_date = start_time.strftime("%Y-%m-%d") # refresh current date for new day 0000hrs case
-        temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
-        proc_res["BusArrival"] = temp_res
-        proc_res["BusArrival_DateTime"] = str(dt.datetime.now())
-        end_time = dt.datetime.now()
-        BUS_STOPS_DATE_TIME = start_time.strftime("%Y-%m-%d-%H-%M")
-        logging(f"async started: {start_time} ended: {end_time}")
-        json_object = json.dumps(proc_res, indent = 4) 
+    if not os.path.exists(f'export/{cur_date}'): 
+        os.makedirs(f'export/{cur_date}') 
 
-        if not os.path.exists(f'export/{cur_date}'): 
-            os.makedirs(f'export/{cur_date}') 
+    filename = f'export/{cur_date}/busarrival_{dt.datetime.now().strftime("%Y-%m-%d-%H-%M")}.json'
+    with open(filename, "w") as outfile:
+        outfile.write(json_object)
+    logging(f"async started: {start_time} ended: {end_time}")
 
-        filename = f'export/{cur_date}/busarrival_{dt.datetime.now().strftime("%Y-%m-%d-%H-%M")}.json'
-        with open(filename, "w") as outfile:
-            outfile.write(json_object)
+    
     
 if __name__ == "__main__":
     main()
