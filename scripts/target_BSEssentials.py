@@ -79,7 +79,7 @@ def getBusService():
 
 def checkNetworkConnectivity():
     LTA_API = API_LTA_BUS()
-    BUS_ROUTES = LTA_API.getAllBusRoute()
+    BUS_ROUTES = LTA_API.getBusRoutes()
     return BUS_ROUTES
 
 

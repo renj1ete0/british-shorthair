@@ -47,7 +47,7 @@ def getBusStop():
 
 def checkNetworkConnectivity():
     LTA_API = API_LTA_BUS()
-    BUS_ROUTES = LTA_API.getAllBusRoute()
+    BUS_ROUTES = LTA_API.getBusRoutes(0)
     return BUS_ROUTES
 
 def main():
@@ -55,6 +55,8 @@ def main():
     BUS_STOPS = getBusStop()
     proc_res = {}
     start_time = dt.datetime.now()
+    if start_time.seconds > 5:
+        return
     cur_date = start_time.strftime("%Y-%m-%d")
     logging(f"async started: {start_time} in progress...")
 
