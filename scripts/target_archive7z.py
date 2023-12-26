@@ -18,13 +18,13 @@ def main():
 
     date_formatted = previous_date.strftime("%Y-%m-%d")
 
-    if not os.path.exists(f'logs/{date_formatted}.json'): 
+    if not os.path.exists(f'logs/logs_{date_formatted}.json'): 
         return
     
     if not os.path.exists(f'export/{date_formatted}'): 
         return
 
-    shutil.copyfile('logs/{date_formatted}.json', 'export/{date_formatted}/logs_{date_formatted}.json')
+    shutil.copyfile('logs/logs_{date_formatted}.json', 'export/{date_formatted}/logs_{date_formatted}.json')
 
     zip_var = True
     while zip_var:
