@@ -1,2 +1,4 @@
 python-dotenv==1.0.0
 requests==2.26.0
+py7zr==0.20.8
+crontab==1.0.1
