@@ -55,7 +55,7 @@ def main():
     BUS_STOPS = getBusStop()
     proc_res = {}
     start_time = dt.datetime.now()
-    if start_time.seconds > 5:
+    if start_time.second > 5:
         return
     cur_date = start_time.strftime("%Y-%m-%d")
     logging(f"async started: {start_time} in progress...")
