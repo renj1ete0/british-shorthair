@@ -45,18 +45,31 @@ def getBusStop():
 
     return BUS_STOPS
 
+def checkNetworkConnectivity():
+    LTA_API = API_LTA_BUS()
+    BUS_ROUTES = LTA_API.getAllBusRoute()
+
 def main():
     pool = Pool(processes=10)  # Create a pool of 10 processes
     BUS_STOPS = getBusStop()
+    logging(f"async started: {start_time} in progress...")
+
+    # Insert check for internet connectivity
+    if len(checkNetworkConnectivity()) == 0:
+        logging(f"=======================================")
+        logging(f"Internet Connectivity is down!")
+        logging(f"async ended with errors...")
+        logging(f"=======================================")
+        return
 
     proc_res = {}
     start_time = dt.datetime.now()
     cur_date = start_time.strftime("%Y-%m-%d")
+    logging(f"async started: {start_time} in progress...")
     temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
     proc_res["BusArrival"] = temp_res
     proc_res["BusArrival_DateTime"] = str(dt.datetime.now())
     end_time = dt.datetime.now()
-    logging(f"async started: {start_time} in progress...")
     json_object = json.dumps(proc_res, indent = 4) 
 
     if not os.path.exists(f'export/{cur_date}'): 

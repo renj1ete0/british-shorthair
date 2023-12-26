@@ -44,7 +44,7 @@ class API_LTA_BUS:
                 rejected = False
                 return response.json()
 
-        while tries < 3 and rejected:
+        while tries < 2 and rejected:
             tries += 1
             response = self.APICALL(self.URLBUSARRIVAL, header, parameters)
             if hasattr(response, "status_code"):
