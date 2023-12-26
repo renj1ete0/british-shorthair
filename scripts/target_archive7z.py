@@ -31,15 +31,17 @@ def main():
         logging("Starting 7z compression")
         with py7zr.SevenZipFile(f"export/{date_formatted}.7z", 'w') as archive:
             archive.writeall(f"export/{date_formatted}/")
-        logging("Completed 7z compression")
-        if py7zr.SevenZipFile(f"export/{date_formatted}.7z", mode='r').test():
-            logging("7z compression test success")
-            zip_var = False
-            os.remove(f"export/{date_formatted}")
-            logging("Deleted export/{date_formatted}")
-        else:
-            os.remove(f"export/{date_formatted}.7z")
-            logging("7z compression test failure, restarting...")
+            logging("Completed 7z compression")
+            result = archive.test()
+        
+            if result:
+                logging("7z compression test success")
+                zip_var = False
+                os.remove(f"export/{date_formatted}")
+                logging("Deleted export/{date_formatted}")
+            else:
+                os.remove(f"export/{date_formatted}.7z")
+                logging("7z compression test failure, restarting...")
 
     
 if __name__ == "__main__":
