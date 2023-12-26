@@ -69,7 +69,7 @@ def main():
         logging(f"=======================================")
         return
 
-    logging(f"async started: {start_time} in progress...")
+    logging(f"Network connectivity success for: {start_time}")
     temp_res = pool.map(getBusStopTiming, BUS_STOPS, chunksize=10)
     proc_res["BusArrival"] = temp_res
     proc_res["BusArrival_DateTime"] = str(dt.datetime.now())
