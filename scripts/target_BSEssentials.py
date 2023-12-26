@@ -2,6 +2,7 @@ from model.api import API_LTA_BUS
 import datetime as dt
 import json
 import os 
+import time
 
 if not os.path.exists("export"): 
     os.makedirs("export") 
@@ -73,7 +74,19 @@ def getBusService():
 
     return dt.datetime.now().strftime("%Y-%m-%d")
 
+def checkNetworkConnectivity():
+    LTA_API = API_LTA_BUS()
+    BUS_ROUTES = LTA_API.getAllBusRoute()
+    return BUS_ROUTES
+
+
 def main():
+    while len(checkNetworkConnectivity()) == 0:
+        logging(f"=======================================")
+        logging(f"Internet Connectivity is down!")
+        logging(f"=======================================")
+        time.sleep(60)
+        
     getBusStop()
     getBusRoute()
     getBusService()

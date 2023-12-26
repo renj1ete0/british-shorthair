@@ -48,6 +48,7 @@ def getBusStop():
 def checkNetworkConnectivity():
     LTA_API = API_LTA_BUS()
     BUS_ROUTES = LTA_API.getAllBusRoute()
+    return BUS_ROUTES
 
 def main():
     pool = Pool(processes=10)  # Create a pool of 10 processes
