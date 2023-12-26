@@ -30,6 +30,9 @@ def getBusStop():
     filename = f'export/{cur_date}/busstop_{dt.datetime.now().strftime("%Y-%m-%d")}.json'
     with open(filename, "w") as outfile:
         json.dump(BUS_STOP_JSON, outfile)
+    logging(f"=======================================")
+    logging(f"Bus Stop Dataset Exported! {filename}")
+    logging(f"=======================================")
 
     filename = f'export/busstop_current.json'
     with open(filename, "w") as outfile:
