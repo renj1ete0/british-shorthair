@@ -24,21 +24,21 @@ def main():
     if not os.path.exists(f'export/{date_formatted}'): 
         return
 
-    shutil.copyfile('logs/logs_{date_formatted}.json', 'export/{date_formatted}/logs_{date_formatted}.json')
+    shutil.copyfile(f'logs/logs_{date_formatted}.json', f'export/{date_formatted}/logs_{date_formatted}.json')
 
     zip_var = True
     while zip_var:
         logging("Starting 7z compression")
-        with py7zr.SevenZipFile("export/{date_formatted}.7z", 'w') as archive:
-            archive.writeall("export/{date_formatted}/")
+        with py7zr.SevenZipFile(f"export/{date_formatted}.7z", 'w') as archive:
+            archive.writeall(f"export/{date_formatted}/")
         logging("Completed 7z compression")
-        if py7zr.SevenZipFile("export/{date_formatted}.7z", mode='r').test():
+        if py7zr.SevenZipFile(f"export/{date_formatted}.7z", mode='r').test():
             logging("7z compression test success")
             zip_var = False
-            os.remove("export/{date_formatted}")
+            os.remove(f"export/{date_formatted}")
             logging("Deleted export/{date_formatted}")
         else:
-            os.remove("export/{date_formatted}.7z")
+            os.remove(f"export/{date_formatted}.7z")
             logging("7z compression test failure, restarting...")
 
     
