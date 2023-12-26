@@ -14,35 +14,29 @@ def logging(msg):
         
 def main():
 
-    previous_date = dt.datetime.now() - timedelta(days = 1)
+    folder_path = 'export'
 
-    date_formatted = previous_date.strftime("%Y-%m-%d")
+    all_files = os.listdir(folder_path)
+    check_files = [file for file in all_files if not file.endswith(".7z") and not file.endswith(".json")]
+    current_date = dt.datetime.now().strftime("%Y-%m-%d")
 
-    if not os.path.exists(f'logs/logs_{date_formatted}.json'): 
-        return
-    
-    if not os.path.exists(f'export/{date_formatted}'): 
-        return
+    for folder_names in check_files:
+        if folder_names != current_date:
+        # file_path = os.path.join(folder_path, folder_names)
 
-    shutil.copyfile(f'logs/logs_{date_formatted}.json', f'export/{date_formatted}/logs_{date_formatted}.json')
+            if not os.path.exists(f'logs/logs_{folder_names}.json'): 
+                return
+            
+            if not os.path.exists(f'export/{folder_names}'): 
+                return
 
-    zip_var = True
-    while zip_var:
-        logging("Starting 7z compression")
-        with py7zr.SevenZipFile(f"export/{date_formatted}.7z", 'w') as archive:
-            archive.writeall(f"export/{date_formatted}/")
-            logging("Completed 7z compression")
-            result = archive.test()
+            shutil.copyfile(f'logs/logs_{folder_names}.json', f'export/{folder_names}/logs_{folder_names}.json')
+
+
+            logging("Starting 7z compression")
+            with py7zr.SevenZipFile(f"export/{folder_names}.7z", 'x') as archive:
+                archive.writeall(f"export/{folder_names}/")
+                logging("Completed 7z compression")
         
-            if result:
-                logging("7z compression test success")
-                zip_var = False
-                os.remove(f"export/{date_formatted}")
-                logging("Deleted export/{date_formatted}")
-            else:
-                os.remove(f"export/{date_formatted}.7z")
-                logging("7z compression test failure, restarting...")
-
-    
 if __name__ == "__main__":
     main()
