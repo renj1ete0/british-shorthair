@@ -7,10 +7,14 @@ allcronjobs = CronTab(user=config["USER"])
 allcronjobs.remove_all() # Assuming server is only for this project
 
 # Bus Stop Essentials CRON - Bus Svc, Bus Stops, Bus Route JSON (Run at 3am daily)
-job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 target_BSEssentials.py', comment='BS_Essentials')
-job.hour.on(2)
+job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 target_BSEssentials.py', comment='BS_Essentials_reboot')
 job.every_reboot()
-job.run()
+job.run()   
+allcronjobs.write()
+
+# Bus Stop Essentials CRON - Bus Svc, Bus Stops, Bus Route JSON (Run at 3am daily)
+job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 target_BSEssentials.py', comment='BS_Essentials_sched')
+job.hour.on(2)
 allcronjobs.write()
 
 # Bus Stop Arrival CRON - Bus Arrival JSON (Run every 1min)
