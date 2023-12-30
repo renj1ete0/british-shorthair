@@ -51,7 +51,7 @@ def checkNetworkConnectivity():
     return BUS_ROUTES.status_code != 200
 
 def main():
-    pool = Pool(processes=100) 
+    pool = Pool(processes=50) 
     BUS_STOPS = getBusStop()
     proc_res = {}
     start_time = dt.datetime.now()
