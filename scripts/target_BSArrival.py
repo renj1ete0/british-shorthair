@@ -51,12 +51,12 @@ def checkNetworkConnectivity():
     return BUS_ROUTES.status_code != 200
 
 def main():
-    pool = Pool(processes=20)  # Create a pool of 10 processes
+    pool = Pool(processes=100) 
     BUS_STOPS = getBusStop()
     proc_res = {}
     start_time = dt.datetime.now()
-    if start_time.second > 5:
-        logging(f"Exceed 5s mark, waiting for next min...")
+    if start_time.second > 20:
+        logging(f"Exceed 20s mark, waiting for next min...")
         return
     cur_date = start_time.strftime("%Y-%m-%d")
     logging(f"async started: {start_time} in progress...")
