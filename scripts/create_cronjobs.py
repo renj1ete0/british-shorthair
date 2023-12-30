@@ -22,8 +22,8 @@ job = allcronjobs.new(command='cd ~/british-shorthair/scripts/ && python3 target
 job.minute.every(1)
 allcronjobs.write()
 
-# # 7z Archival CRON - 7z Archive JSON (Run at 4am daily)
-# job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 target_archive7z.py', comment='BS_7z_Archive')
-# job.hour.on(3)
-# job.run()
-# allcronjobs.write()
+# 7z Archival CRON - 7z Archive JSON (Run at 4am daily)
+job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x target_7zarchive.sh + ./target_7zarchive.sh', comment='BS_7z_Archive')
+job.hour.on(3)
+job.run()
+allcronjobs.write()
