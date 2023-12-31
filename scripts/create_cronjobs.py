@@ -14,7 +14,7 @@ allcronjobs.write()
 
 # Bus Stop Essentials CRON - Bus Svc, Bus Stops, Bus Route JSON (Run at 3am daily)
 job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 target_BSEssentials.py', comment='BS_Essentials_sched')
-job.hour.on(2)
+job.setall("0 2 * * *")
 allcronjobs.write()
 
 # Bus Stop Arrival CRON - Bus Arrival JSON (Run every 1min)
@@ -24,6 +24,5 @@ allcronjobs.write()
 
 # 7z Archival CRON - 7z Archive JSON (Run at 4am daily)
 job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x target_7zarchive.sh && ./target_7zarchive.sh', comment='BS_7z_Archive')
-job.hour.on(3)
-job.run()
+job.setall("0 3 * * *")
 allcronjobs.write()
