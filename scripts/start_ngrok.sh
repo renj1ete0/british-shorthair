@@ -1,2 +1,2 @@
 #!/bin/bash
-ngrok tcp 22
+screen -S ngrok -d -m ngrok tcp 22
