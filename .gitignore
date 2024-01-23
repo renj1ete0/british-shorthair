@@ -4,3 +4,5 @@
 *.pyc*
 *_pycache_*
 *.json*
+/scripts/2target_BSArrival.py
+/scripts/2create_cronjobs.py

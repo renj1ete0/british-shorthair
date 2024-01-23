@@ -175,6 +175,89 @@ class API_LTA_BUS:
             record += 500
 
         return all_busstop
+    
+class API_LTA_OTHERS:
+
+    def __init__(self):
+        config = dotenv_values(".env") # env is in scripts folder
+
+        self.apikey = json.loads(config["API_KEYS"])[1]
+
+        self.URLCARPARK = "http://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2"
+
+    def getLTACarpark(self):
+        header = {
+        'AccountKey' : self.api_key,  
+        'accept' : 'application/json',
+        }
+
+        response = self.APICALL(self.URLCARPARK, header)
+
+class API_URA:
+    def __init__(self):
+        config = dotenv_values(".env") # env is in scripts folder
+
+        self.apikey = json.loads(config["API_KEYS"])[1]
+
+        self.URLCARPARK = "http://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2"
+
+    def APICALL(self, url, header, parameters = {}):
+        response = None
+        try:
+            response = requests.get(url, headers = header, params = parameters)
+        except:
+            if response is not None:
+                return {"error": "An error occured", "error_resp_obj": response, "status_code": response.status_code}
+            else:
+                return {"error": "An error occured", "status_code": 0}
+        return response
+
+
+class API_DATAMALL:
+    def __init__(self):
+        config = dotenv_values(".env") # env is in scripts folder
+
+        self.apikey = json.loads(config["API_KEYS"])[1]
+
+        self.URLCARPARK = "https://api.data.gov.sg/v1/transport/carpark-availability"
+
+    def APICALL(self, url, header, parameters = {}):
+        response = None
+        try:
+            response = requests.get(url, headers = header, params = parameters)
+        except:
+            if response is not None:
+                return {"error": "An error occured", "error_resp_obj": response, "status_code": response.status_code}
+            else:
+                return {"error": "An error occured", "status_code": 0}
+        return response
+
+
+    def getHDBCarpark(self):
+
+        response = self.APICALL(self.URLCARPARK)
+class API_NEA:
+    def __init__(self):
+        config = dotenv_values(".env") # env is in scripts folder
+
+        self.apikey = json.loads(config["API_KEYS"])[1]
+
+        self.URLCARPARK = "http://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2"
+
+    def APICALL(self, url, header, parameters = {}):
+        response = None
+        try:
+            response = requests.get(url, headers = header, params = parameters)
+        except:
+            if response is not None:
+                return {"error": "An error occured", "error_resp_obj": response, "status_code": response.status_code}
+            else:
+                return {"error": "An error occured", "status_code": 0}
+        return response
+
+
+
+
 
         
 if __name__ == '__main__':

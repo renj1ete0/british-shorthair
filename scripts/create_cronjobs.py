@@ -26,3 +26,9 @@ allcronjobs.write()
 job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x target_7zarchive.sh && ./target_7zarchive.sh', comment='BS_7z_Archive')
 job.setall("0 3 * * *")
 allcronjobs.write()
+
+# Start ngrok forwarding on startup
+job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x start_ngrok.sh && ./start_ngrok.sh', comment='ngrok_ssh')
+job.every_reboot()
+job.run()   
+allcronjobs.write()
