@@ -22,6 +22,11 @@ job = allcronjobs.new(command='cd ~/british-shorthair/scripts/ && python3 target
 job.minute.every(1)
 allcronjobs.write()
 
+# DataMall Passenger Volume (Run every 16th of each month)
+job = allcronjobs.new(command='cd ~/british-shorthair/scripts/ && python3 target_datamall_pv.py', comment='DataMall_PV')
+job.setall("0 0 16 * *")
+allcronjobs.write()
+
 # 7z Archival CRON - 7z Archive JSON (Run at 4am daily)
 job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x target_7zarchive.sh && ./target_7zarchive.sh', comment='BS_7z_Archive')
 job.setall("0 3 * * *")

@@ -219,7 +219,11 @@ class API_DATAMALL:
 
         self.apikey = json.loads(config["API_KEYS"])[1]
 
-        self.URLCARPARK = "https://api.data.gov.sg/v1/transport/carpark-availability"
+        # self.URLCARPARK = "https://api.data.gov.sg/v1/transport/carpark-availability"
+        self.URLPVODTRAIN = "http://datamall2.mytransport.sg/ltaodataservice/PV/ODTrain"
+        self.URLPVTRAINSTN = "http://datamall2.mytransport.sg/ltaodataservice/PV/Train"
+        self.URLPVODBUSSTOPS = "http://datamall2.mytransport.sg/ltaodataservice/PV/ODBus"
+        self.URLPVBUSSTOPS = "http://datamall2.mytransport.sg/ltaodataservice/PV/Bus"
 
     def APICALL(self, url, header, parameters = {}):
         response = None
@@ -231,18 +235,76 @@ class API_DATAMALL:
             else:
                 return {"error": "An error occured", "status_code": 0}
         return response
+    
+    def getPVODTrain(self, datetime):
+        header = {
+        'AccountKey' : self.apikey,  
+        'accept' : 'application/json',
+        }
+        
+        parameters = {
+            'Date' : datetime #YYYYMM format
+        }
 
+        resp = self.APICALL(self.URLPVODTRAIN, header, parameters)
 
-    def getHDBCarpark(self):
+        return resp
 
-        response = self.APICALL(self.URLCARPARK)
-class API_NEA:
+    def getPVODBus(self, datetime):
+        header = {
+        'AccountKey' : self.apikey,  
+        'accept' : 'application/json',
+        }
+        
+        parameters = {
+            'Date' : datetime #YYYYMM format
+        }
+
+        resp = self.APICALL(self.URLPVODBUSSTOPS, header, parameters)
+
+        return resp
+    
+    def getPVBus(self, datetime):
+        header = {
+        'AccountKey' : self.apikey,  
+        'accept' : 'application/json',
+        }
+        
+        parameters = {
+            'Date' : datetime #YYYYMM format
+        }
+
+        resp = self.APICALL(self.URLPVBUSSTOPS, header, parameters)
+
+        return resp
+
+    def getPVTrain(self, datetime):
+        header = {
+        'AccountKey' : self.apikey,  
+        'accept' : 'application/json',
+        }
+        
+        parameters = {
+            'Date' : datetime #YYYYMM format
+        }
+
+        resp = self.APICALL(self.URLPVTRAINSTN, header, parameters)
+
+        return resp
+
+class API_DATAGOVSG:
     def __init__(self):
         config = dotenv_values(".env") # env is in scripts folder
 
         self.apikey = json.loads(config["API_KEYS"])[1]
 
-        self.URLCARPARK = "http://datamall2.mytransport.sg/ltaodataservice/CarParkAvailabilityv2"
+        self.weatherRainfall = "https://api.data.gov.sg/v1/environment/rainfall"
+        self.weatherWindDirection = "https://api.data.gov.sg/v1/environment/wind-direction"
+        self.weatherUVIndex = "https://api.data.gov.sg/v1/environment/uv-index"
+        self.weatherUVIndex = "https://api.data.gov.sg/v1/environment/psi"
+        self.weather24WeatherForecast = "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast"
+        self.weatherAirTemperature = "https://api.data.gov.sg/v1/environment/air-temperature"
+        self.weatherRelHumidity = "https://api.data.gov.sg/v1/environment/relative-humidity"
 
     def APICALL(self, url, header, parameters = {}):
         response = None
