@@ -138,6 +138,9 @@ def main(datetime = None):
     else:
         month = month - 1
 
+    if len(str(month)) == 1:
+        month = "0" + str(month)
+        
     if datetime is None:
         datetime = str(year) + str(month)
 
