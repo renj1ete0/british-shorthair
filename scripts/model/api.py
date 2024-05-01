@@ -292,21 +292,23 @@ class API_DATAMALL:
 
         return resp
 
-class API_DATAGOVSG:
+class API_DATAGOV_MSS:
     def __init__(self):
-        config = dotenv_values(".env") # env is in scripts folder
+        # config = dotenv_values(".env") # env is in scripts folder
 
-        self.apikey = json.loads(config["API_KEYS"])[1]
+        # self.apikey = json.loads(config["API_KEYS"])[1]
 
-        self.weatherRainfall = "https://api.data.gov.sg/v1/environment/rainfall"
-        self.weatherWindDirection = "https://api.data.gov.sg/v1/environment/wind-direction"
-        self.weatherUVIndex = "https://api.data.gov.sg/v1/environment/uv-index"
-        self.weatherUVIndex = "https://api.data.gov.sg/v1/environment/psi"
-        self.weather24WeatherForecast = "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast"
-        self.weatherAirTemperature = "https://api.data.gov.sg/v1/environment/air-temperature"
-        self.weatherRelHumidity = "https://api.data.gov.sg/v1/environment/relative-humidity"
+        self.URLMSSRAINFALL = "https://api.data.gov.sg/v1/environment/rainfall"
+        self.URLMSSWINDDIR = "https://api.data.gov.sg/v1/environment/wind-direction"
+        self.URLMSSUVIDX = "https://api.data.gov.sg/v1/environment/uv-index"
+        self.URLMSSPSI = "https://api.data.gov.sg/v1/environment/psi"
+        self.URLMSS24HRFCAST = "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast"
+        self.URLMSSAIRTEMP = "https://api.data.gov.sg/v1/environment/air-temperature"
+        self.URLMSSRELHUMIDITY = "https://api.data.gov.sg/v1/environment/relative-humidity"
 
-    def APICALL(self, url, header, parameters = {}):
+        self.APILST = [self.URLMSSRAINFALL, self.URLMSSWINDDIR, self.URLMSSUVIDX, self.URLMSSPSI, self.URLMSS24HRFCAST, self.URLMSSAIRTEMP, self.URLMSSRELHUMIDITY]
+
+    def APICALL(self, url, header = {}, parameters = {}):
         response = None
         try:
             response = requests.get(url, headers = header, params = parameters)
@@ -316,7 +318,101 @@ class API_DATAGOVSG:
             else:
                 return {"error": "An error occured", "status_code": 0}
         return response
+    
+    def getMSSDATA(self, url, params):
+        resp = self.APICALL(url, parameters = params)
+        return resp
+    
+    def getMSSRainfall(self, dt = None, date = None):
+        URL = self.URLMSSRAINFALL
+        params = {}
+        if dt != None:
+            params = {
+                'date_time': dt
+            }
+        elif date != None:
+            params = {
+                'date': date
+            }
+        return self.getMSSDATA(URL, params)
 
+    def getMSSWindDir(self, dt = None, date = None):
+        URL = self.URLMSSWINDDIR
+        params = {}
+        if dt != None:
+            params = {
+                'date_time': dt
+            }
+        elif date != None:
+            params = {
+                'date': date
+            }
+        return self.getMSSDATA(self, dt = None, date = None)
+
+    def getMSSUVIdx(self, dt = None, date = None):
+        URL = self.URLMSSUVIDX
+        params = {}
+        if dt != None:
+            params = {
+                'date_time': dt
+            }
+        elif date != None:
+            params = {
+                'date': date
+            }
+        return self.getMSSDATA(URL, params)
+
+    def getMSSPSI(self, dt = None, date = None):
+        URL = self.URLMSSPSI
+        params = {}
+        if dt != None:
+            params = {
+                'date_time': dt
+            }
+        elif date != None:
+            params = {
+                'date': date
+            }
+        return self.getMSSDATA(URL, params)
+    
+    def getMSS24HrFCast(self, dt = None, date = None):
+        URL = self.URLMSS24HRFCAST
+        params = {}
+        if dt != None:
+            params = {
+                'date_time': dt
+            }
+        elif date != None:
+            params = {
+                'date': date
+            }
+        return self.getMSSDATA(URL, params)
+
+    def getMSSAirTemp(self, dt = None, date = None):
+        URL = self.URLMSSAIRTEMP
+        params = {}
+        if dt != None:
+            params = {
+                'date_time': dt
+            }
+        elif date != None:
+            params = {
+                'date': date
+            }
+        return self.getMSSDATA(URL, params)
+
+    def getMSSRelHumidity(self, dt = None, date = None):
+        URL = self.URLMSSRELHUMIDITY
+        params = {}
+        if dt != None:
+            params = {
+                'date_time': dt
+            }
+        elif date != None:
+            params = {
+                'date': date
+            }
+        return self.getMSSDATA(URL, params)
 
 
 
