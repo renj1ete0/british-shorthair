@@ -203,11 +203,10 @@ def getMSS(date = None):
 def checkNetworkConnectivity():
     API = API_DATAGOV_MSS()
 
-    while True:
-        for LINK in API.APILST:
-            if API.APICALL(LINK).status_code == 200:
-                return True
-        return False
+    for LINK in API.APILST:
+        if API.APICALL(LINK).status_code == '200':
+            return True
+    return False
 
 def main():
     while checkNetworkConnectivity():
