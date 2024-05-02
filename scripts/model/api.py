@@ -347,7 +347,7 @@ class API_DATAGOV_MSS:
             params = {
                 'date': date
             }
-        return self.getMSSDATA(self, dt = None, date = None)
+        return self.getMSSDATA(URL, params)
 
     def getMSSUVIdx(self, dt = None, date = None):
         URL = self.URLMSSUVIDX
@@ -414,9 +414,5 @@ class API_DATAGOV_MSS:
             }
         return self.getMSSDATA(URL, params)
 
-
-
-
-        
 if __name__ == '__main__':
     print(__package__)

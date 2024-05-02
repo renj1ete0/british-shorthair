@@ -6,3 +6,4 @@
 *.json*
 /scripts/2target_BSArrival.py
 /scripts/2create_cronjobs.py
+/scripts/export_mss/*

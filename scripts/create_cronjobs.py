@@ -32,6 +32,16 @@ job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x targ
 job.setall("0 3 * * *")
 allcronjobs.write()
 
+# MSS CRON (Run at 3am daily)
+job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 taget_MSS.py', comment='MSS')
+job.setall("0 3 * * *")
+allcronjobs.write()
+
+# 7z Archival CRON - 7z Archive CSV MSS (Run at 4am daily)
+job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x target_7zarchive_mss.sh && ./target_7zarchive_mss.sh', comment='MSS_7z_archive')
+job.setall("0 4 * * *")
+allcronjobs.write()
+
 # Start ngrok forwarding on startup
 job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && chmod +x start_ngrok.sh && ./start_ngrok.sh', comment='ngrok_ssh')
 job.every_reboot()
