@@ -33,7 +33,7 @@ job.setall("0 3 * * *")
 allcronjobs.write()
 
 # MSS CRON (Run at 3am daily)
-job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 taget_MSS.py', comment='MSS')
+job = allcronjobs.new(command= 'cd ~/british-shorthair/scripts/ && python3 target_MSS.py', comment='MSS')
 job.setall("0 3 * * *")
 allcronjobs.write()
 
