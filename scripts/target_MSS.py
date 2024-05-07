@@ -30,7 +30,7 @@ def getRainfall(API, date = None, datetime = None):
                 for stns in resp['metadata']['stations']:
                     count = outputCSV(f"{stns['id']}, {stns['device_id']},{stns['name']},{stns['location']['latitude']},{stns['location']['longitude']}", f"export_mss/{date}/rainfall_stations_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS Rainfall Stations: Exported {date}")
+                    logging(f"> MSS Rainfall Stations: Exported {date}", True)
 
                 #   Export readings to JSON
                 count = 0
@@ -38,7 +38,7 @@ def getRainfall(API, date = None, datetime = None):
                     for reading in stns['readings']:
                         count = outputCSV(f"{stns['timestamp']},{reading['station_id']},{reading['value']}", f"export_mss/{date}/rainfall_readings_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS Rainfall Readings: Exported {date}")
+                    logging(f"> MSS Rainfall Readings: Exported {date}", True)
 
 def getWindDir(API, date = None, datetime = None):
     if date is not None:
@@ -52,7 +52,7 @@ def getWindDir(API, date = None, datetime = None):
                 for stns in resp['metadata']['stations']:
                     count = outputCSV(f"{stns['device_id']},{stns['name']},{stns['location']['latitude']},{stns['location']['longitude']}", f"export_mss/{date}/winddir_stations_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS WindDir Stations: Exported {date}")
+                    logging(f"> MSS WindDir Stations: Exported {date}", True)
 
                 #   Export readings to JSON
                 count = 0
@@ -60,7 +60,7 @@ def getWindDir(API, date = None, datetime = None):
                     for reading in stns['readings']:
                         count = outputCSV(f"{stns['timestamp']},{reading['station_id']},{reading['value']}", f"export_mss/{date}/winddir_readings_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS WindDir Readings: Exported {date}")
+                    logging(f"> MSS WindDir Readings: Exported {date}", True)
 
 def getUVIdx(API, date = None, datetime = None):
     if date is not None:
@@ -75,7 +75,7 @@ def getUVIdx(API, date = None, datetime = None):
                     for reading in stns['index']:
                         count = outputCSV(f"{stns['timestamp']},{stns['update_timestamp']}, {reading['timestamp']}, {reading['value']}", f"export_mss/{date}/uvidx_readings_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS UV Index Stations: Exported {date}")
+                    logging(f"> MSS UV Index Stations: Exported {date}", True)
 
 def getPSI(API, date = None, datetime = None):
     if date is not None:
@@ -96,7 +96,7 @@ def getPSI(API, date = None, datetime = None):
                         count = outputCSV(f"{item['timestamp']}, {item['update_timestamp']}, {item['readings'][reading]['west']}, {item['readings'][reading]['east']}, {item['readings'][reading]['central']}, {item['readings'][reading]['south']}, {item['readings'][reading]['north']}", f"export_mss/{date}/psi_{reading}_readings_{date}.csv", count)
 
                 if count == 0:
-                    logging(f"> MSS PSI Readings: Exported {date}")
+                    logging(f"> MSS PSI Readings: Exported {date}", True)
 
 def get24HrForecast(API, date = None, datetime = None):
     if date is not None:
@@ -112,7 +112,7 @@ def get24HrForecast(API, date = None, datetime = None):
                     for period in item['periods']:
                         count = outputCSV(f"{item['update_timestamp']}, {item['timestamp']}, {item['valid_period']['start']}, {item['valid_period']['end']}, {period['time']['start']}, {period['time']['end']}, {period['regions']['west']}, {period['regions']['east']}, {period['regions']['central']}, {period['regions']['south']}, {period['regions']['north']}", f"export_mss/{date}/24hrforecast_periods_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS 24Hr Forecast: Exported {date}")
+                    logging(f"> MSS 24Hr Forecast: Exported {date}", True)
                 
 def getAirTemp(API, date = None, datetime = None):
     if date is not None:
@@ -126,7 +126,7 @@ def getAirTemp(API, date = None, datetime = None):
                 for stns in resp['metadata']['stations']:
                     count = outputCSV(f"{stns['id']}, {stns['device_id']},{stns['name']},{stns['location']['latitude']},{stns['location']['longitude']}", f"export_mss/{date}/airtemp_stations_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS Air Temp Stations: Exported {date}")
+                    logging(f"> MSS Air Temp Stations: Exported {date}", True)
 
                 #   Export readings to JSON
                 count = 0
@@ -134,7 +134,7 @@ def getAirTemp(API, date = None, datetime = None):
                     for reading in stns['readings']:
                         count = outputCSV(f"{stns['timestamp']},{reading['station_id']},{reading['value']}", f"export_mss/{date}/airtemp_readings_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS Air Temp Readings: Exported {date}")
+                    logging(f"> MSS Air Temp Readings: Exported {date}", True)
 
 def getRelHumidity(API, date = None, datetime = None):
     if date is not None:
@@ -148,7 +148,7 @@ def getRelHumidity(API, date = None, datetime = None):
                 for stns in resp['metadata']['stations']:
                     count = outputCSV(f"{stns['id']}, {stns['device_id']},{stns['name']},{stns['location']['latitude']},{stns['location']['longitude']}", f"export_mss/{date}/rh_stations_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS Rel Humidity Stations: Exported {date}")
+                    logging(f"> MSS Rel Humidity Stations: Exported {date}", True)
 
                 #   Export readings to JSON
                 count = 0
@@ -156,7 +156,7 @@ def getRelHumidity(API, date = None, datetime = None):
                     for reading in stns['readings']:
                         count = outputCSV(f"{stns['timestamp']},{reading['station_id']},{reading['value']}", f"export_mss/{date}/rh_readings_{date}.csv", count)
                 if count == 0:
-                    logging(f"> MSS Rel Humidity Readings: Exported {date}")
+                    logging(f"> MSS Rel Humidity Readings: Exported {date}", True)
 
 
 def getMSS(date = None):
@@ -169,7 +169,7 @@ def getMSS(date = None):
     if not os.path.exists(f'export_mss/{cur_date}'): 
         os.makedirs(f'export_mss/{cur_date}') 
 
-    logging(f"***Getting MSS Data {cur_date}***")
+    logging(f"***Getting MSS Data {cur_date}***", True)
     getRainfall(API, date = cur_date)
     getWindDir(API, date = cur_date)
     getUVIdx(API, date = cur_date)
@@ -188,9 +188,9 @@ def checkNetworkConnectivity():
 
 def main():
     while checkNetworkConnectivity():
-        logging(f"=======================================")
-        logging(f"Internet Connectivity is down!")
-        logging(f"=======================================")
+        logging(f"=======================================", True)
+        logging(f"Internet Connectivity is down!", True)
+        logging(f"=======================================", True)
         time.sleep(60)
         
     getMSS()

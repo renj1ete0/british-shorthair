@@ -13,7 +13,11 @@ if not os.path.exists("logs"):
 config = dotenv_values(".env")  
 API_KEYS = json.loads(config["API_KEYS"])
 
-def logging(msg):
+def logging(msg, mss_log = False):
     print(msg)
-    with open(f'logs/logs_{dt.datetime.now().strftime("%Y-%m-%d")}.json', "a") as f:
-        f.write(f'{dt.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}: {msg}\n')
+    if mss_log:
+        with open(f'logs/mss_logs_{dt.datetime.now().strftime("%Y-%m-%d")}.json', "a") as f:
+            f.write(f'{dt.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}: {msg}\n')
+    else:
+        with open(f'logs/logs_{dt.datetime.now().strftime("%Y-%m-%d")}.json', "a") as f:
+            f.write(f'{dt.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")}: {msg}\n')

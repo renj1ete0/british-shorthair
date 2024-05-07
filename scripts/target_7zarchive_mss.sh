@@ -4,7 +4,7 @@ log_file="7z_export.json"
 
 current_date=$(date -d "yesterday" +%Y-%m-%d)
 
-cp "logs/logs_$current_date.json" "$export_dir/$current_date"
+cp "logs/mss_logs_$current_date.json" "$export_dir/$current_date"
 cd $export_dir
 
 folder_to_7z="$current_date"
