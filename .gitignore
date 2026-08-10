@@ -1,9 +1,31 @@
-*.env*
-*.bat*
-/scripts/export/*
-*.pyc*
-*_pycache_*
-*.json*
-/scripts/2target_BSArrival.py
-/scripts/2create_cronjobs.py
-/scripts/export_mss/*
+# Secrets and local config
+.env
+.env.*
+!.env.example
+*.dat
+
+# Collected data and logs live outside the repo, at the path set by BSH_DATA_PATH.
+# These entries only catch stray local runs that wrote inside the working tree.
+/data/
+/scripts/export/
+/scripts/export_mss/
+/scripts/logs/
+/export/
+/logs/
+*.7z
+*.zip
+
+# Local-only modules and docs: present on the build host, never published.
+/scripts/batch_mss.py
+/scripts/bsh/jobs/bus_arrival_batch.py
+/docs/*.local.md
+
+# Local experiment copies
+/scripts/2*.py
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/

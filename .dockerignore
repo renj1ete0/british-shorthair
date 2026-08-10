@@ -1,0 +1,24 @@
+.git
+.gitignore
+**/__pycache__
+**/*.py[cod]
+.venv
+venv
+
+# Collected data must never end up in an image layer.
+data/
+scripts/export/
+scripts/export_mss/
+scripts/logs/
+export/
+logs/
+*.7z
+*.zip
+
+# Secrets are injected at runtime via env_file, not baked in.
+.env
+.env.*
+
+# NOTE: some gitignored local-only modules under scripts/ are intentionally NOT
+# excluded here - they must be present in the image to run in the container. A build
+# from a fresh clone will not contain them; build locally, where they exist.

@@ -1,0 +1,65 @@
+# Build context is the repository root so the image can COPY scripts/ and
+# requirements.txt:  docker compose -f docker/docker-compose.yml up -d --build
+
+services:
+  collector:
+    # On a server, pull the published image; there is no build context there and the
+    # local-only modules are not in git, so a server-side build could not reproduce it.
+    # On the build machine, `docker compose --profile build build` uses the context.
+    image: ${BSH_IMAGE:-ghcr.io/renj1ete0/british-shorthair:latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    # No pull_policy: a fresh server pulls because the image is absent locally, and
+    # thereafter Watchtower does the updating. Forcing a pull would break
+    # `docker compose up --build` on the build machine, where the image is local and
+    # may not be published yet.
+    container_name: british-shorthair
+    restart: unless-stopped
+    env_file:
+      - ../.env
+    environment:
+      TZ: Asia/Singapore
+      BSH_DATA_DIR: /data
+    volumes:
+      # Defaults to ./data at the repository root, so the stack runs with no
+      # configuration at all. That directory is gitignored, so collected data cannot
+      # be committed by accident.
+      #
+      # Set BSH_DATA_PATH in .env to put it elsewhere - and do so if the repository
+      # lives inside a synced folder (OneDrive, Dropbox, Google Drive). Collection is
+      # roughly 3.3 GB/day, which such a folder will try to upload continuously.
+      - ${BSH_DATA_PATH:-../data}:/data
+    labels:
+      # Watchtower only touches containers carrying this label.
+      com.centurylinklabs.watchtower.enable: "true"
+    healthcheck:
+      # Healthy when the collector wrote something in the last 10 minutes.
+      test: ["CMD-SHELL", "find /data/export/bus_arrival -name '*.json' -mmin -10 | grep -q . || exit 1"]
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 2m
+
+  watchtower:
+    image: nickfedor/watchtower:latest
+    container_name: british-shorthair-watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      TZ: Asia/Singapore
+      # Only manage containers explicitly labelled above.
+      WATCHTOWER_LABEL_ENABLE: "true"
+      # Remove the superseded image after a successful update.
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_INCLUDE_RESTARTING: "true"
+      # Check hourly. Cheap: it compares registry digests, it does not pull blindly.
+      WATCHTOWER_POLL_INTERVAL: "3600"
+      # Credentials for the PRIVATE registry holding the collector image. Without
+      # these Watchtower cannot see the image at all and silently never updates.
+      REPO_USER: ${REGISTRY_USER}
+      REPO_PASS: ${REGISTRY_TOKEN}
+      # Reuses the collector's bot so update notices land in the same chat.
+      # Requires both variables to be set in ../.env; harmless if they are absent.
+      WATCHTOWER_NOTIFICATION_URL: "telegram://${TELEGRAM_BOT_TOKEN}@telegram/?chats=${TELEGRAM_CHAT_ID}"
