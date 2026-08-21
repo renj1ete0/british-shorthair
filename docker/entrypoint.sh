@@ -1,10 +1,14 @@
 #!/bin/sh
-# Container entrypoint: generate the schedule, bootstrap prerequisites, then hand off.
+# Container entrypoint: fix data-volume ownership, generate schedule, bootstrap, hand off.
 set -eu
 
-cd /app/scripts
-
 DATA_DIR="${BSH_DATA_DIR:-/data}"
+
+# Fix the bind-mounted volume so bsh can write regardless of host ownership.
+mkdir -p "${DATA_DIR}/logs" "${DATA_DIR}/state"
+chown -R bsh:bsh "${DATA_DIR}"
+
+cd /app/scripts
 
 # The crontab is generated from the job registry rather than kept as a checked-in
 # file, so a job's schedule cannot drift from the code that defines it.
@@ -25,9 +29,9 @@ fi
 # fail every 20 seconds until bus_essentials next runs at 04:00, so publish it now.
 if [ ! -f "${DATA_DIR}/busstop_current.json" ]; then
     echo "bus stop list missing; running bus_essentials to bootstrap..."
-    if ! python run_job.py bus_essentials; then
+    if ! gosu bsh python run_job.py bus_essentials; then
         echo "WARNING: bootstrap failed - bus_arrival will fail until bus_essentials succeeds"
     fi
 fi
 
-exec "$@"
+exec gosu bsh "$@"

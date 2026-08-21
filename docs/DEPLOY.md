@@ -23,26 +23,19 @@ pull rate limits.
 # write:packages. Paste the token as the password.
 echo $GITHUB_TOKEN | docker login ghcr.io -u renj1ete0 --password-stdin
 
-# Build for the server's architecture and push. --platform matters: an image built
-# on an amd64 workstation will not run on an arm64 server.
-docker buildx build \
-  --platform linux/arm64 \
-  -f docker/Dockerfile \
-  -t ghcr.io/renj1ete0/british-shorthair:latest \
-  --push .
+# One-off: create a multi-arch buildx builder (the default driver cannot push
+# multi-platform images).
+docker buildx create --use --name multi --driver docker-container
+
+# Build for amd64 and arm64, then push. Run from the repository root.
+docker compose -f docker/docker-compose.yml build
+docker compose -f docker/docker-compose.yml push
 ```
 
 Then confirm the package is **Private** under
 `github.com/users/renj1ete0/packages/container/british-shorthair/settings`. As the
 owner you already have pull access; nothing else needs granting for a single-user
 setup.
-
-Building both architectures at once, if you ever want the same tag to run anywhere:
-
-```bash
-docker buildx build --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/renj1ete0/british-shorthair:latest --push .
-```
 
 ---
 
@@ -52,11 +45,10 @@ Install Docker Engine and the compose plugin, then:
 
 ```bash
 sudo mkdir -p /srv/british-shorthair
-sudo chown 1000:1000 /srv/british-shorthair    # container runs as uid 1000
 ```
 
-The ownership step matters: the container is unprivileged, and a root-owned bind mount
-gives permission errors on the first write rather than at startup.
+No ownership fix needed: the entrypoint starts as root, chowns the data volume to the
+unprivileged `bsh` user, then drops privileges before handing over to supercronic.
 
 **Disk:** budget ~3.3 GB/day (~1.2 TB/year) before archival — bus arrival ~1.8 GB,
 EV charging ~0.9 GB, carpark ~0.6 GB. Nightly archival compresses a completed day
@@ -70,15 +62,15 @@ day plus however many archives you keep.
 Copy `docker/docker-compose.yml` and `.env.example` to the server. Rename the latter to
 `.env` and fill in:
 
-| Variable | Notes |
-|---|---|
-| `API_KEY` | Your LTA DataMall key. The only variable strictly required to collect. |
-| `LTA_API_KEYS` | Optional. Several keys, to spread load. Overridden by `API_KEY`. |
-| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional; blank disables notifications. |
-| `BSH_DATA_PATH` | Optional. Defaults to `./data` beside the compose file. Set it to put data on a bigger disk, or when the repo sits in a synced folder. |
-| `BSH_IMAGE` | `ghcr.io/renj1ete0/british-shorthair:latest` |
-| `REGISTRY_USER` | Your GitHub login — must match the image namespace exactly. |
-| `REGISTRY_TOKEN` | PAT with **`read:packages` only**. Never put a `write:packages` or `repo`-scoped token on a server. |
+| Variable                                 | Notes                                                                                                                                  |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `API_KEY`                                | Your LTA DataMall key. The only variable strictly required to collect.                                                                 |
+| `LTA_API_KEYS`                           | Optional. Several keys, to spread load. Overridden by `API_KEY`.                                                                       |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional; blank disables notifications.                                                                                                |
+| `BSH_DATA_PATH`                          | Optional. Defaults to `./data` beside the compose file. Set it to put data on a bigger disk, or when the repo sits in a synced folder. |
+| `BSH_IMAGE`                              | `ghcr.io/renj1ete0/british-shorthair:latest`                                                                                           |
+| `REGISTRY_USER`                          | Your GitHub login — must match the image namespace exactly.                                                                            |
+| `REGISTRY_TOKEN`                         | PAT with **`read:packages` only**. Never put a `write:packages` or `repo`-scoped token on a server.                                    |
 
 Write `KEY=value` with **no spaces around `=`**. Docker's env-file parser rejects
 `KEY = value` outright and the stack will not start.
@@ -214,11 +206,11 @@ disk. See `docs/DATA.md` for what it converts and what it deliberately leaves al
 
 ## Troubleshooting
 
-| Symptom | Cause |
-|---|---|
-| Container restart-loops at startup | Generated crontab failed validation; the offending line is printed above the error. |
-| `LTA_API_KEYS is empty` | `.env` not loaded — check `env_file` path is relative to the compose file. |
-| Permission denied writing `/data` | Bind mount not owned by uid 1000. |
-| Watchtower never updates | Missing/expired `REGISTRY_TOKEN`, or the server was never `docker login`-ed to ghcr.io. |
-| `exec format error` | Image architecture does not match the server; rebuild with the right `--platform`. |
-| Arrival files sparse or absent | Check `runs.jsonl` for that job — validation failures and retries are recorded there. |
+| Symptom                            | Cause                                                                                   |
+| ---------------------------------- | --------------------------------------------------------------------------------------- |
+| Container restart-loops at startup | Generated crontab failed validation; the offending line is printed above the error.     |
+| `LTA_API_KEYS is empty`            | `.env` not loaded — check `env_file` path is relative to the compose file.              |
+| Permission denied writing `/data`  | Bind mount not owned by uid 1000.                                                       |
+| Watchtower never updates           | Missing/expired `REGISTRY_TOKEN`, or the server was never `docker login`-ed to ghcr.io. |
+| `exec format error`                | Image architecture does not match the server; rebuild with the right `--platform`.      |
+| Arrival files sparse or absent     | Check `runs.jsonl` for that job — validation failures and retries are recorded there.   |

@@ -100,6 +100,15 @@ class Settings:
     arrival_workers: int = 160
     arrival_timeout: float = 6.0
 
+    # Free-space thresholds. Collection writes ~3.3 GB/day, so "it filled up" is a
+    # question of when, not if, unless archival keeps pace.
+    disk_warn_pct: float = 15.0
+    disk_alert_pct: float = 5.0
+    # External dead-man's switch. The collector cannot report its own death - if the
+    # container stops, so does the job that would tell you. Pinging an outside service
+    # on a schedule lets *that* service alert on the absence of a ping.
+    heartbeat_url: str = ""
+
     request_timeout: float = 30.0
     download_timeout: float = 300.0
 
@@ -135,8 +144,11 @@ def get_settings():
         retry_base_delay=_env_float("BSH_RETRY_BASE_DELAY", 0.5),
         retry_max_delay=_env_float("BSH_RETRY_MAX_DELAY", 20.0),
         arrival_deadline=_env_float("BSH_ARRIVAL_DEADLINE", 18.0),
-        arrival_workers=_env_int("BSH_ARRIVAL_WORKERS", 60),
+        arrival_workers=_env_int("BSH_ARRIVAL_WORKERS", 160),
         arrival_timeout=_env_float("BSH_ARRIVAL_TIMEOUT", 6.0),
+        disk_warn_pct=_env_float("BSH_DISK_WARN_PCT", 15.0),
+        disk_alert_pct=_env_float("BSH_DISK_ALERT_PCT", 5.0),
+        heartbeat_url=_env("HEARTBEAT_URL", "") or "",
         request_timeout=_env_float("BSH_REQUEST_TIMEOUT", 30.0),
         download_timeout=_env_float("BSH_DOWNLOAD_TIMEOUT", 300.0),
     )

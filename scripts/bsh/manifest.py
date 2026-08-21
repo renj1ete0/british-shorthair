@@ -128,6 +128,7 @@ def summarise_runs(records, feed, date, month=None):
         "records_found": len(mine),
         "ok": 0, "partial": 0, "failed": 0, "crashed": 0,
         "retries": 0, "items_ok": 0, "items_failed": 0, "items_empty": 0,
+        "dormant_runs": 0,
         "errors": [],
     }
     if not mine:
@@ -141,6 +142,8 @@ def summarise_runs(records, feed, date, month=None):
         return summary
 
     for record in mine:
+        if (record.get("notes") or {}).get("dormant"):
+            summary["dormant_runs"] += 1
         status = record.get("status", "ok")
         if status in summary:
             summary[status] += 1
@@ -177,15 +180,28 @@ def build(feed, date, directory, cadence=None, run_records=(), generated_at=None
     stamps = _file_times(files, date)
     gaps = find_gaps(stamps, interval)
 
+    runs = summarise_runs(list(run_records), job_name, date, month=month)
+    runs["job"] = job_name
+
     completeness = {
         "files": len(entries),
         "total_bytes": sum(e["bytes"] for e in entries),
     }
     if interval:
-        expected = 86400 // interval
+        # Hours when the feed published nothing are not missing data. Each dormant run
+        # covers one minute and is evidence, recorded at collection time, that nothing
+        # was on offer - so those minutes are removed from the expectation rather than
+        # counted as loss. Without this every archive would report a nightly shortfall.
+        dormant_seconds = runs.get("dormant_runs", 0) * 60
+        active_seconds = max(0, 86400 - dormant_seconds)
+        expected = active_seconds // interval
+        basis = f"cadence {interval}s"
+        if dormant_seconds:
+            basis += f", minus {dormant_seconds // 60} dormant min"
         completeness.update({
             "expected_files": expected,
-            "expected_basis": f"cadence {interval}s",
+            "dormant_minutes": dormant_seconds // 60,
+            "expected_basis": basis,
             "coverage_pct": round(100.0 * len(entries) / expected, 2) if expected else None,
             "first": stamps[0].strftime("%H:%M:%S") if stamps else None,
             "last": stamps[-1].strftime("%H:%M:%S") if stamps else None,
@@ -200,9 +216,6 @@ def build(feed, date, directory, cadence=None, run_records=(), generated_at=None
         "zero_byte_files": [e["name"] for e in entries if e["bytes"] == 0][:25],
         "undersized_files": _size_anomalies(entries),
     }
-
-    runs = summarise_runs(list(run_records), job_name, date, month=month)
-    runs["job"] = job_name
 
     warnings = []
     if quality["zero_byte_files"]:

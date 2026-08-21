@@ -11,6 +11,7 @@ from . import (  # noqa: F401  (imported for registration side effects)
     bus_essentials,
     daily_summary,
     datamall_pv,
+    health,
     migrate_legacy,
     mss,
     mss_backfill,

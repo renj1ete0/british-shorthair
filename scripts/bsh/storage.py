@@ -12,6 +12,7 @@ bus arrival ticks every 20 seconds. Moving to Parquet is tracked separately.
 import csv
 import json
 import os
+import shutil
 from pathlib import Path
 
 
@@ -124,3 +125,14 @@ def human_bytes(count):
             return f"{value:.0f} {unit}" if unit == "B" else f"{value:.1f} {unit}"
         value /= 1024
     return f"{value:.1f} TB"
+
+
+def disk_free(path):
+    """Free/total bytes and percent free for the filesystem holding ``path``.
+
+    Collection writes ~3.3 GB/day, so a volume that stops being watched fills within
+    weeks. Reported rather than inferred from file sizes, because archives are deleted
+    and rewritten and only the filesystem knows the truth.
+    """
+    usage = shutil.disk_usage(Path(path))
+    return usage.free, usage.total, (100.0 * usage.free / usage.total if usage.total else 0.0)

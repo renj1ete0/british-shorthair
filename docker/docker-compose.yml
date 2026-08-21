@@ -1,5 +1,7 @@
 # Build context is the repository root so the image can COPY scripts/ and
-# requirements.txt:  docker compose -f docker/docker-compose.yml up -d --build
+# requirements.txt.  To build and push the multi-arch image from the build machine:
+#   docker compose -f docker/docker-compose.yml build
+#   docker compose -f docker/docker-compose.yml push
 
 services:
   collector:
@@ -10,6 +12,9 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
     # No pull_policy: a fresh server pulls because the image is absent locally, and
     # thereafter Watchtower does the updating. Forcing a pull would break
     # `docker compose up --build` on the build machine, where the image is local and
@@ -34,9 +39,9 @@ services:
       # Watchtower only touches containers carrying this label.
       com.centurylinklabs.watchtower.enable: "true"
     healthcheck:
-      # Healthy when the collector wrote something in the last 10 minutes.
-      test: ["CMD-SHELL", "find /data/export/bus_arrival -name '*.json' -mmin -10 | grep -q . || exit 1"]
-      interval: 5m
+      # Healthy when the batch collector wrote a snapshot in the last 2 minutes.
+      test: ["CMD-SHELL", "find /data/feed=bus_arrival_batch -name '*.txt.gz' -mmin -2 | grep -q . || exit 1"]
+      interval: 2m
       timeout: 10s
       retries: 3
       start_period: 2m

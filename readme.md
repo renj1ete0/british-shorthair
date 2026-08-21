@@ -5,6 +5,7 @@ Codename British Shorthair is a project to experiment and understand more about 
 This repository runs a containerised collector that pulls from Singapore's open transport and environment APIs on a schedule and archives the results for analysis.
 
 Some of the use cases of this project may include:
+
 - Analysis and insights of bus routes, loading and trip times for planning
 - Improved bus arrival timing estimations
 - Optimisation of bus schedules, etc.
@@ -14,19 +15,19 @@ Some of the use cases of this project may include:
 
 **LTA DataMall** (needs an API key)
 
-| Job | Cadence | Data |
-|---|---|---|
-| `bus_arrival` | on demand | Real-time arrivals, queried one bus stop at a time |
-| `bus_essentials` | daily | Bus stops, routes, services |
-| `planned_bus_routes` | daily | Announced upcoming route changes |
-| `carpark` | 1m | HDB / LTA / URA carpark availability |
-| `train_alerts` | 5m | Train disruptions, free bus and shuttle status |
-| `crowd_density` | 10m | Real-time MRT/LRT station crowding, 11 lines |
-| `crowd_forecast` | daily | Forecast station crowding, 30-minute intervals |
-| `ev_charging` | 5m | Island-wide EV charging point availability |
-| `gtfs_trip_updates` | 5m | GTFS-Realtime train trip predictions (protobuf) |
-| `gtfs_schedule` | daily | Static GTFS train schedule |
-| `datamall_pv` | monthly | Passenger volume: bus stops, train stations, and both O-D matrices |
+| Job                  | Cadence   | Data                                                               |
+| -------------------- | --------- | ------------------------------------------------------------------ |
+| `bus_arrival`        | on demand | Real-time arrivals, queried one bus stop at a time                 |
+| `bus_essentials`     | daily     | Bus stops, routes, services                                        |
+| `planned_bus_routes` | daily     | Announced upcoming route changes                                   |
+| `carpark`            | 1m        | HDB / LTA / URA carpark availability                               |
+| `train_alerts`       | 5m        | Train disruptions, free bus and shuttle status                     |
+| `crowd_density`      | 10m       | Real-time MRT/LRT station crowding, 11 lines                       |
+| `crowd_forecast`     | daily     | Forecast station crowding, 30-minute intervals                     |
+| `ev_charging`        | 5m        | Island-wide EV charging point availability                         |
+| `gtfs_trip_updates`  | 5m        | GTFS-Realtime train trip predictions (protobuf)                    |
+| `gtfs_schedule`      | daily     | Static GTFS train schedule                                         |
+| `datamall_pv`        | monthly   | Passenger volume: bus stops, train stations, and both O-D matrices |
 
 **NEA via data.gov.sg** (no key required) — `mss`, nightly, 11 datasets: rainfall, wind direction, wind speed, air temperature, relative humidity, PSI, PM2.5, UV index, 2-hour forecast, 24-hour forecast, 4-day outlook.
 
@@ -116,9 +117,32 @@ Failures alert immediately, deduplicated by key with a 30-minute cooldown so an 
 
 ## Updates
 
-Watchtower (`nickfedor/watchtower`) runs alongside and updates labelled containers hourly.
+Watchtower (`nickfedor/watchtower`) runs alongside and updates labelled containers hourly by comparing digests against GHCR. To ship a change, build and push from your machine — the server picks it up within the hour.
 
-**Caveat:** Watchtower updates images by comparing digests against a **registry**. The collector image is built locally and is not pushed anywhere, so Watchtower cannot update it — it will keep itself current, but rebuilding the collector is a manual `docker compose up -d --build`. To get automatic collector updates, push the image to a registry; if your deployment includes any local-only modules (see below), that registry must be **private**.
+**Match the server's architecture.** `docker compose build` and a plain `docker build` produce an image for *your* machine. An amd64 image will not start on an arm64 server, and it fails at run time rather than build time — so the mistake surfaces only after the push. Use `buildx` with an explicit `--platform`:
+
+```bash
+# one-off, first time only
+echo $GITHUB_TOKEN | docker login ghcr.io -u renj1ete0 --password-stdin
+
+# build both architectures under one tag
+docker buildx build --platform linux/amd64,linux/arm64 \
+  -f docker/Dockerfile \
+  -t ghcr.io/renj1ete0/british-shorthair:latest --push .
+```
+
+Publish both unless you have a reason not to. A tag holds one manifest list, so pushing a single platform **replaces** what was there — build `--platform linux/arm64` alone and the amd64 image silently disappears, breaking any amd64 host still pulling that tag. Building both costs a few minutes and removes the question.
+
+Cross-building runs under QEMU emulation, so an arm64 build on an amd64 machine takes a few minutes. The Dockerfile handles the architecture difference itself — `TARGETARCH` selects the matching supercronic binary and verifies its checksum, so a wrong or substituted download fails the build rather than shipping silently.
+
+Confirm what you published before relying on it:
+
+```bash
+docker manifest inspect ghcr.io/renj1ete0/british-shorthair:latest \
+  | grep -A2 platform
+```
+
+See **[docs/DEPLOY.md](docs/DEPLOY.md)** for the registry setup, and keep the package **private** — the image contains local-only modules that are not published.
 
 ## Notes
 
