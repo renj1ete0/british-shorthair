@@ -82,13 +82,13 @@ configuring the host, and Watchtower updates. The steps below are for running lo
 
 1. Clone this repository.
 2. Copy `.env.example` to `.env` in the repository root and fill it in:
-   - `LTA_API_KEYS` — a JSON array. Get keys from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en.html). More than one key spreads the 20s bus arrival fan-out across accounts.
+   - `LTA_API_KEYS` — a JSON array. Get keys from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en.html). More than one key spreads load (e.g. a scheduled `bus_arrival` fan-out) across accounts.
    - `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID` — optional; leave blank to disable notifications.
    - `BSH_DATA_PATH` — host directory for collected data. Keep it off OneDrive; this grows fast.
 3. Start it:
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d --build
+docker compose --env-file .env -f docker/docker-compose.yml up -d --build
 docker logs -f british-shorthair
 ```
 
@@ -118,7 +118,10 @@ Failures alert immediately, deduplicated by key with a 30-minute cooldown so an 
 
 Watchtower (`nickfedor/watchtower`) runs alongside and updates labelled containers hourly.
 
-**Caveat:** Watchtower updates images by comparing digests against a **registry**. The collector image is built locally and is not pushed anywhere, so Watchtower cannot update it — it will keep itself current, but rebuilding the collector is a manual `docker compose up -d --build`. To get automatic collector updates, push the image to a registry; if your deployment includes any local-only modules (see below), that registry must be **private**.
+Watchtower updates images by comparing digests against a **registry**, so what it does depends on where the stack runs:
+
+- **Locally** (built with `--build`, never pushed): Watchtower has nothing to compare against. Rebuild by hand with the `up -d --build` command above.
+- **On a server** (pulls the private GHCR image): build and push from your machine, and Watchtower rolls it out within the hour. See [docs/DEPLOY.md](docs/DEPLOY.md). If your image includes any local-only modules (see below), the registry must stay **private**.
 
 ## Notes
 

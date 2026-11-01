@@ -1,11 +1,18 @@
-# Build context is the repository root so the image can COPY scripts/ and
-# requirements.txt:  docker compose -f docker/docker-compose.yml up -d --build
+# Run every command from the directory that holds .env (the repository root, or the
+# same layout on a server), passing --env-file so ${...} below is filled from it.
+# Without it Compose looks for .env beside this file and silently uses defaults.
+#
+#   Build machine:  docker compose --env-file .env -f docker/docker-compose.yml up -d --build
+#   Server:         docker compose --env-file .env -f docker/docker-compose.yml pull
+#                   docker compose --env-file .env -f docker/docker-compose.yml up -d --no-build
+#
+# See docs/DEPLOY.md for the full server walkthrough.
 
 services:
   collector:
-    # On a server, pull the published image; there is no build context there and the
-    # local-only modules are not in git, so a server-side build could not reproduce it.
-    # On the build machine, `docker compose --profile build build` uses the context.
+    # On a server, pull the published image with --no-build. There is no build context
+    # there, and the local-only modules are not in git, so a server-side build could
+    # not reproduce the image. On the build machine, `up -d --build` uses the context.
     image: ${BSH_IMAGE:-ghcr.io/renj1ete0/british-shorthair:latest}
     build:
       context: ..
@@ -34,8 +41,10 @@ services:
       # Watchtower only touches containers carrying this label.
       com.centurylinklabs.watchtower.enable: "true"
     healthcheck:
-      # Healthy when the collector wrote something in the last 10 minutes.
-      test: ["CMD-SHELL", "find /data/export/bus_arrival -name '*.json' -mmin -10 | grep -q . || exit 1"]
+      # Healthy when carpark (scheduled every minute, appending to an hourly
+      # snapshots.ndjson) wrote in the last 10 minutes. bus_arrival is on demand only,
+      # so it says nothing about whether the scheduler is alive.
+      test: ["CMD-SHELL", "find /data/feed=carpark -type f -name '*.ndjson' -mmin -10 | grep -q . || exit 1"]
       interval: 5m
       timeout: 10s
       retries: 3

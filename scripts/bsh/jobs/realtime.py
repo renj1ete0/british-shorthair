@@ -12,7 +12,7 @@ Snapshots are appended to an hourly NDJSON file per feed rather than written as 
 file per poll: at a one-minute cadence the latter would create 1440 files a day per
 feed, and the hourly file is also the natural input to the planned Parquet compaction.
 
-    export/carpark/date=2026-08-09/hour=14.ndjson
+    feed=carpark/date=2026-08-09/hour=14/snapshots.ndjson
 """
 
 from .. import endpoints, storage

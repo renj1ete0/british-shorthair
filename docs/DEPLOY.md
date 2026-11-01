@@ -8,6 +8,22 @@ gitignored on purpose (see the README). A clone of this repository does not cont
 them, so a server-side `docker compose build` would produce an image missing the batch
 collector. Builds happen on your machine, where those files exist.
 
+## The flow at a glance
+
+```
+  your machine                       GHCR (private)                server
+  ────────────                       ──────────────                ──────
+  docker buildx build --push  ──▶   british-shorthair:latest  ◀──  docker compose pull / up --no-build
+  (step 1, again per change)                                ◀──  Watchtower checks hourly, pulls, restarts
+```
+
+- **Built here, run there.** You build and push from your machine. The server never
+  builds and never needs the source code.
+- **The server needs only two files:** `docker/docker-compose.yml` and a filled-in `.env`,
+  in the same layout as the repository (step 3).
+- **Updates are automatic.** After the first launch you never touch the server to deploy:
+  push a new image and Watchtower rolls it out within the hour (step 5).
+
 ---
 
 ## 1. Publish the image (once, from your machine)
@@ -67,15 +83,35 @@ day plus however many archives you keep.
 
 ## 3. Configure
 
-Copy `docker/docker-compose.yml` and `.env.example` to the server. Rename the latter to
-`.env` and fill in:
+The compose file refers to `../.env` and `../data`, so keep the repository's layout on
+the server: a folder holding `.env`, with the compose file in a `docker/` subfolder.
+
+```bash
+# on the server
+mkdir -p ~/british-shorthair/docker
+
+# from your machine, in the repository root
+scp docker/docker-compose.yml server:~/british-shorthair/docker/
+scp .env.example              server:~/british-shorthair/.env
+```
+
+Result:
+
+```
+~/british-shorthair/
+├── .env                      ← secrets and settings
+└── docker/
+    └── docker-compose.yml
+```
+
+Edit `~/british-shorthair/.env` and fill in:
 
 | Variable | Notes |
 |---|---|
 | `API_KEY` | Your LTA DataMall key. The only variable strictly required to collect. |
 | `LTA_API_KEYS` | Optional. Several keys, to spread load. Overridden by `API_KEY`. |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | Optional; blank disables notifications. |
-| `BSH_DATA_PATH` | Optional. Defaults to `./data` beside the compose file. Set it to put data on a bigger disk, or when the repo sits in a synced folder. |
+| `BSH_DATA_PATH` | Set to `/srv/british-shorthair` (the directory from step 2). If left unset, data goes to `~/british-shorthair/data`. The commands below assume `/srv/british-shorthair`. |
 | `BSH_IMAGE` | `ghcr.io/renj1ete0/british-shorthair:latest` |
 | `REGISTRY_USER` | Your GitHub login — must match the image namespace exactly. |
 | `REGISTRY_TOKEN` | PAT with **`read:packages` only**. Never put a `write:packages` or `repo`-scoped token on a server. |
@@ -141,9 +177,21 @@ whitespace.
 ## 4. Start
 
 ```bash
-docker compose -f docker-compose.yml up -d
+cd ~/british-shorthair
+docker compose --env-file .env -f docker/docker-compose.yml pull
+docker compose --env-file .env -f docker/docker-compose.yml up -d --no-build
 docker logs -f british-shorthair
 ```
+
+- `--env-file .env` is required. Compose otherwise looks for `.env` next to the compose
+  file (in `docker/`), finds nothing, and quietly falls back to defaults. Watchtower then
+  has no registry credentials and `BSH_DATA_PATH` is ignored.
+- `--no-build` stops Compose from trying to build. The file has a `build:` section for
+  your machine, and there is no source on the server to build from.
+
+This is the only time you start it by hand. Both containers use
+`restart: unless-stopped`, so they come back after a reboot or a Docker restart.
+Stop the stack with `docker compose --env-file .env -f docker/docker-compose.yml down`.
 
 On first start with an empty volume the container:
 
@@ -159,23 +207,36 @@ On first start with an empty volume the container:
 # Jobs firing?
 docker logs british-shorthair 2>&1 | grep "job succeeded" | tail
 
-# Data landing?
-find /srv/british-shorthair -name '*.txt.gz' | tail -5
+# Data landing? Carpark runs every minute, so this should list a file.
+find /srv/british-shorthair/feed=carpark -name '*.ndjson' -mmin -5
+
+# Healthcheck status (runs the same carpark test; "starting" for the first few minutes)
+docker inspect --format '{{.State.Health.Status}}' british-shorthair
 
 # Health of every run today
 cat /srv/british-shorthair/logs/date=$(date +%F)/runs.jsonl | tail
 ```
 
-Bus arrival snapshots should appear about every 20 seconds, named `HHMMSS.txt.gz`.
-A healthy series has filenames 20 seconds apart.
+Carpark appends to an hourly `feed=carpark/date=.../hour=HH/snapshots.ndjson`, so that
+file should have changed in the last few minutes.
+
+**Bus arrival:** snapshots every 20 seconds (`feed=bus_arrival_batch/.../HHMMSS.txt.gz`)
+come only from the local-only collector module. If your image doesn't include it, you
+won't see those files, and that's expected. The `bus_arrival` job in this repository is
+on demand only and writes nothing unless you run it by hand.
 
 ---
 
 ## 5. Updates
 
 Watchtower polls GHCR hourly, and pulls and restarts the collector when the digest of
-`:latest` changes. To ship a change: build and push from your machine, and the server
-picks it up within the hour.
+`:latest` changes. To ship a change, re-run the `docker buildx build ... --push` from
+step 1 on your machine. The server picks it up within the hour, with nothing to run
+there.
+
+A change to `docker-compose.yml` itself is the exception. Watchtower updates images,
+not compose files, so copy the new file over and re-run the `up -d --no-build` command
+from step 4.
 
 Two consequences worth being deliberate about:
 
@@ -217,7 +278,9 @@ disk. See `docs/DATA.md` for what it converts and what it deliberately leaves al
 | Symptom | Cause |
 |---|---|
 | Container restart-loops at startup | Generated crontab failed validation; the offending line is printed above the error. |
-| `LTA_API_KEYS is empty` | `.env` not loaded — check `env_file` path is relative to the compose file. |
+| `LTA_API_KEYS is empty` | `.env` not loaded. It must sit one level above `docker/docker-compose.yml`. |
+| `docker ps` shows `unhealthy` | No carpark write in 10 minutes. Check `runs.jsonl` for carpark errors (API key, network). |
+| Compose tries to build, or errors about the build context | `--no-build` was left off on the server. |
 | Permission denied writing `/data` | Bind mount not owned by uid 1000. |
 | Watchtower never updates | Missing/expired `REGISTRY_TOKEN`, or the server was never `docker login`-ed to ghcr.io. |
 | `exec format error` | Image architecture does not match the server; rebuild with the right `--platform`. |
