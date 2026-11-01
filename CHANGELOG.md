@@ -5,6 +5,27 @@ version (for example `2.2.0`) and with `latest`, which the server and Watchtower
 The version is set in `scripts/bsh/__init__.py`. Bump it and add an entry here for
 every push.
 
+## 2.3.0 - 2026-11-01
+
+### Changed
+- Base image moved from `python:3.13-slim` (Debian) to `python:3.14-alpine3.24`
+  (Python 3.14.10). The image shrinks from 162 MB to 76 MB.
+- supercronic v0.2.48 → v0.2.51 (Go and dependency updates, refreshed CA certs).
+  Checksums are the SHA1SUMs published with the release.
+- python-dotenv 1.2.2 → 1.2.4. requests 2.34.2 was already the latest. The transitive
+  dependencies resolve to urllib3 2.8.0, certifi 2026.10.23, idna 3.20 and
+  charset-normalizer 3.5.2.
+
+### Security
+- Trivy scan of the image: 0 vulnerabilities (OS packages, Python packages and the
+  supercronic binary). pip-audit: no known vulnerabilities.
+- pip is removed from the final image. Nothing installs packages at runtime, and
+  pip's own vendored urllib3 2.7.0, msgpack 1.1.2 and setuptools 70.3.0 carried
+  5 HIGH CVEs (including CVE-2026-97687, CVE-2026-114613 and CVE-2025-47273).
+- curl is only used to download supercronic during the build and isn't in the
+  final image.
+- `apk upgrade` at build time picks up OS fixes released after the base image.
+
 ## 2.2.0 - 2026-11-01
 
 ### Added

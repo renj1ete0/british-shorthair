@@ -1,12 +1,12 @@
-# Pinned to the latest stable releases as of 2026-08-09.
+# Pinned to the latest stable releases as of 2026-11-01 (pip-audit clean).
 # requests 2.26.0 (the previous pin) predates the fixes in 2.31/2.32 for
 # CVE-2023-32681 (proxy Authorization leak) and CVE-2024-35195 (verify=False
 # persisting across a session), so this is a security bump as well as a version bump.
 requests==2.34.2
-python-dotenv==1.2.2
+python-dotenv==1.2.4
 
 # Removed deliberately:
-#   py7zr   - archival shells out to native 7z (p7zip-full), which is far faster
-#             and multithreaded; nothing imported py7zr.
+#   py7zr   - archival streams Python tarfile into native zstd, which is far faster
+#             and multithreaded; nothing imports py7zr.
 #   crontab - native crontab installation is gone; supercronic runs the schedule
 #             inside the container instead.
