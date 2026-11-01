@@ -48,7 +48,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY scripts/ /app/scripts/
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+# Strip CRs: a Windows checkout with core.autocrlf turns the shebang into "/bin/sh\r",
+# and the container then dies with "exec ... entrypoint.sh: no such file or directory".
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
 # Unprivileged. UID 1000 so bind-mounted data stays writable by the usual host user.
 # The chmod normalises modes carried over from the build host: directories copied from
