@@ -182,3 +182,42 @@ def digest(title, body, logger=None):
         return False
     text = f"\U0001f4ca <b>{html.escape(str(title))}</b>\n\n{body}"
     return _post(text, logger)
+
+
+def startup(version, logger=None):
+    """Announce that the collector container has started, naming its version.
+
+    Watchtower's own update notice only names the image tag (always ``:latest``), so
+    this is what tells you which version is actually running. The last announced
+    version is kept in the state directory, which separates an update (version
+    changed) from a plain restart.
+    """
+    path = get_settings().state_dir / "last_version.json"
+    previous = None
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            previous = json.load(handle).get("version")
+    except (OSError, ValueError, AttributeError):
+        pass
+
+    if previous and previous != version:
+        title = f"British Shorthair updated {previous} → {version}"
+    elif previous:
+        title = f"British Shorthair {version} restarted"
+    else:
+        title = f"British Shorthair {version} started"
+    if logger:
+        logger.info(title)
+
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "w", encoding="utf-8") as handle:
+            json.dump({"version": version, "at": now().isoformat()}, handle)
+    except OSError:
+        pass
+
+    if not _enabled(logger):
+        return False
+    text = f"\U0001f408 <b>{html.escape(title)}</b>"
+    text += f"\n\n<i>{now().strftime('%Y-%m-%d %H:%M:%S')} SGT</i>"
+    return _post(text, logger)

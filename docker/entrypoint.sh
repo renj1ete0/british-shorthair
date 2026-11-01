@@ -30,4 +30,8 @@ if [ ! -f "${DATA_DIR}/busstop_current.json" ]; then
     fi
 fi
 
+# Announce the running version (Telegram, if configured). After a Watchtower update
+# this is the message that says which version is now live; it never blocks startup.
+python run_job.py --announce || true
+
 exec "$@"

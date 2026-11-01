@@ -6,6 +6,7 @@
     python run_job.py bus_arrival                  run one job
     python run_job.py mss --date 2026-08-01        run for a specific date
     python run_job.py mss_backfill --days 120      on-demand backfill
+    python run_job.py --announce                   send the startup notice (entrypoint)
 
 The crontab supercronic runs is generated from the job registry, so a job's schedule
 is declared next to its code and the two cannot drift apart.
@@ -40,6 +41,21 @@ def build_crontab():
     return "\n".join(lines)
 
 
+def announce():
+    """Log and send the startup notice naming the running version. Never fails boot."""
+    import logging
+
+    from bsh import __version__, notify
+
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+    logger = logging.getLogger("announce")
+    try:
+        notify.startup(__version__, logger=logger)
+    except Exception as exc:  # noqa: BLE001 - a notice must never stop the collector
+        logger.warning("startup notice failed: %s", exc)
+    return 0
+
+
 def list_jobs():
     width = max(len(j.name) for j in all_jobs())
     print(f"{'JOB'.ljust(width)}  {'SCHEDULE'.ljust(14)}  DESCRIPTION")
@@ -54,6 +70,8 @@ def main(argv=None):
     parser.add_argument("job", nargs="?", help="name of the job to run")
     parser.add_argument("--list", action="store_true", help="list jobs and exit")
     parser.add_argument("--crontab", action="store_true", help="print the crontab and exit")
+    parser.add_argument("--announce", action="store_true",
+                        help="send the startup notice with the running version and exit")
     parser.add_argument("--date", help="target date, YYYY-MM-DD (mss, archive, daily_summary)")
     parser.add_argument("--month", help="target month, YYYYMM (datamall_pv)")
     parser.add_argument("--from", dest="start", help="backfill offset date, YYYY-MM-DD")
@@ -66,6 +84,8 @@ def main(argv=None):
     if args.crontab:
         print(build_crontab())
         return 0
+    if args.announce:
+        return announce()
     if not args.job:
         parser.print_help()
         return 2

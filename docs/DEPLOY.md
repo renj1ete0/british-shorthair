@@ -44,8 +44,24 @@ echo $GITHUB_TOKEN | docker login ghcr.io -u renj1ete0 --password-stdin
 docker buildx build \
   --platform linux/arm64 \
   -f docker/Dockerfile \
+  -t ghcr.io/renj1ete0/british-shorthair:2.2.0 \
   -t ghcr.io/renj1ete0/british-shorthair:latest \
   --push .
+```
+
+**Every push carries two tags:** the version from `scripts/bsh/__init__.py` and
+`latest`. The server and Watchtower follow `latest`; the version tag is a fixed point
+to roll back to. Before each push, bump `__version__` and add a `CHANGELOG.md` entry.
+On boot the container announces the version it is running (see CHANGELOG 2.2.0).
+
+With Podman (`podman login ghcr.io` first), build once and push each tag:
+
+```bash
+V=2.2.0
+podman build --platform linux/amd64 -f docker/Dockerfile \
+  -t ghcr.io/renj1ete0/british-shorthair:$V -t ghcr.io/renj1ete0/british-shorthair:latest .
+podman push ghcr.io/renj1ete0/british-shorthair:$V
+podman push ghcr.io/renj1ete0/british-shorthair:latest
 ```
 
 Then confirm the package is **Private** under
