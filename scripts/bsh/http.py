@@ -219,12 +219,18 @@ class Fetcher:
                 return records
         raise FetchError(f"{label}: exceeded {max_pages} pages; refusing to loop further")
 
-    def download(self, url, destination, policy=None, deadline=None, label=None, chunk=1 << 20):
+    def download(self, url, destination, policy=None, deadline=None, label=None,
+                 chunk=1 << 20, timeout=None):
         """Stream a file to disk with retries, writing via a temp file.
 
         Written to ``.part`` and renamed on success so a truncated download can never
         be mistaken for a complete archive.
+
+        ``timeout`` overrides the global download timeout for this call. The global one
+        is sized for multi-megabyte archives; a job fetching small files on a tight
+        cadence should fail fast instead of letting one stalled socket hold its run.
         """
+        timeout = timeout or get_settings().download_timeout
         policy = policy or RetryPolicy.default()
         label = label or destination.name
         temp = destination.with_suffix(destination.suffix + ".part")
@@ -236,8 +242,7 @@ class Fetcher:
             try:
                 destination.parent.mkdir(parents=True, exist_ok=True)
                 written = 0
-                with self.session.get(url, stream=True,
-                                      timeout=get_settings().download_timeout) as response:
+                with self.session.get(url, stream=True, timeout=timeout) as response:
                     if response.status_code in RETRY_STATUS:
                         last = f"HTTP {response.status_code}"
                         raise requests.RequestException(last)
